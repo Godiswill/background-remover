@@ -24,6 +24,7 @@ function formatTime(ms: number) {
 export default function SelectImage({ children }: React.PropsWithChildren) {
   const fileInputId = useId();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [imgSliders, setImgSliders] = useState<IPreviewDownloadProps[]>();
   const dropRef = useRef<HTMLLabelElement>(null);
   const [time, setTime] = useState('');
@@ -42,7 +43,25 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
       setIsLoading(true);
 
       const result = await Promise.allSettled(
-        imgFiles.map((file) => removeBackground(file, { device: 'gpu' }))
+        imgFiles.map((file) =>
+          removeBackground(file, {
+            device: 'gpu',
+            publicPath: import.meta.env.PROD
+              ? 'https://bgg.one/ai-model/'
+              : 'http://localhost:4321/ai-model/',
+            progress: (key, current, total) => {
+              // console.log(`Downloading ${key}: ${current} of ${total}`);
+              if (typeof current === 'number' && total < 6) {
+                setIsDownloading(false);
+              } else {
+                setIsDownloading(true);
+              }
+            },
+            fetchArgs: {
+              mode: 'no-cors',
+            },
+          })
+        )
       );
       console.log('result', result);
       const fulfilled = result.reduce((pre, cur, i) => {
@@ -147,7 +166,11 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         {isLoading ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="w-8 h-8 border-4 border-sky-500 border-t-black/10 border-r-black/10 rounded-full animate-spin"></div>
-            <p className="text-sky-500 mt-4">Magic in progress!</p>
+            <p className="text-sky-500 mt-4">
+              {isDownloading
+                ? 'Downloading AI model...'
+                : 'Removing background...'}
+            </p>
           </div>
         ) : (
           <label
