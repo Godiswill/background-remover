@@ -41,22 +41,28 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
 
       const startTime = performance.now();
       setIsLoading(true);
-
+      const isMobile = /mobile/i.test(navigator.userAgent);
       const result = await Promise.allSettled(
         imgFiles.map((file) =>
           removeBackground(file, {
-            device: 'gpu',
+            device: isMobile ? 'cpu' : 'gpu',
             publicPath: import.meta.env.PROD
               ? 'https://bgg.one/ai-model/'
               : 'http://localhost:4321/ai-model/',
             progress: (key, current, total) => {
               console.log(`Downloading ${key}: ${current} of ${total}`);
-              if (typeof current === 'number' && total < 6) {
+              if (
+                typeof current === 'number' &&
+                (current === total || total < 8)
+              ) {
                 setIsDownloading(false);
               } else {
                 setIsDownloading(true);
               }
             },
+            model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
+            proxyToWorker: true,
+            debug: true,
             // fetchArgs: {
             //   mode: 'no-cors',
             // },

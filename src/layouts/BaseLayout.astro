@@ -80,10 +80,11 @@ const description =
         (import.meta.env.DEV || isDebug) &&
         /mobile/i.test(navigator.userAgent)
       ) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/eruda';
-        script.onload = () => eruda.init();
-        document.body.appendChild(script);
+        // const script = document.createElement('script');
+        // script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+        // script.onload = () => eruda.init();
+        // document.body.appendChild(script);
+        import('vconsole').then(({ default: VConsole }) => new VConsole());
       }
     </script>
   </body>
