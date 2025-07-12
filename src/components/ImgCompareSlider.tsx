@@ -38,7 +38,9 @@ export default function ImgCompareSlider({
       slider.setAttribute('style', 'left:' + leftPercent + '%;');
     }
 
-    imgContainer.addEventListener('touchmove', touchmoveEvent);
+    imgContainer.addEventListener('touchmove', touchmoveEvent, {
+      passive: true,
+    });
 
     function mousemoveEvent(e: MouseEvent) {
       if (!imgContainer || !imgBefore || !slider) return;
