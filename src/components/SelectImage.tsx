@@ -50,16 +50,16 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
               ? 'https://bgg.one/ai-model/'
               : 'http://localhost:4321/ai-model/',
             progress: (key, current, total) => {
-              // console.log(`Downloading ${key}: ${current} of ${total}`);
+              console.log(`Downloading ${key}: ${current} of ${total}`);
               if (typeof current === 'number' && total < 6) {
                 setIsDownloading(false);
               } else {
                 setIsDownloading(true);
               }
             },
-            fetchArgs: {
-              mode: 'no-cors',
-            },
+            // fetchArgs: {
+            //   mode: 'no-cors',
+            // },
           })
         )
       );
