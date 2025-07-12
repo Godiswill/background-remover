@@ -63,7 +63,7 @@ const description =
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZS9K7V64W"
     ></script>
-    <script>
+    <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
@@ -72,19 +72,15 @@ const description =
 
       gtag('config', 'G-CZS9K7V64W');
     </script>
-    <script>
+    <script is:inline>
       const params = new URLSearchParams(window.location.search);
 
       const isDebug = !!params.get('debug');
-      if (
-        (import.meta.env.DEV || isDebug) &&
-        /mobile/i.test(navigator.userAgent)
-      ) {
-        // const script = document.createElement('script');
-        // script.src = 'https://cdn.jsdelivr.net/npm/eruda';
-        // script.onload = () => eruda.init();
-        // document.body.appendChild(script);
-        import('vconsole').then(({ default: VConsole }) => new VConsole());
+      if (isDebug && /mobile/i.test(navigator.userAgent)) {
+        const script = document.createElement('script');
+        script.src = '/eruda.js';
+        script.onload = () => eruda.init();
+        document.body.appendChild(script);
       }
     </script>
   </body>
