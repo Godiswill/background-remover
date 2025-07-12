@@ -1,0 +1,108 @@
+---
+import before from '../assets/before.png';
+import after from '../assets/after.png';
+---
+
+<div id="img-compare-slider" class="img-compare-slider">
+    <div class="img-after-bg">
+      <img class="img-after" src={after.src} />
+    </div>
+    <img class="img-before" src={before.src} />
+    <div class="slider">
+      <span class="slider-left-arrow"></span>
+      <span class="slider-right-arrow"></span>
+    </div>
+  </div>
+
+<style>
+
+.img-compare-slider {
+    position: relative;
+    cursor: grab;
+    overflow: hidden;
+}
+img {
+    width: 100%;
+    height: auto;
+}
+.img-before {
+    position: absolute;
+    top: 0;
+    clip-path: inset(0 50% 0 0);
+}
+.img-after {
+    background-image:
+            linear-gradient(45deg, #ccc 25%, transparent 25%),
+            linear-gradient(-45deg, #ccc 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, #ccc 75%),
+            linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* slider and arrow */
+
+.slider {
+    height: 41px;
+    width: 41px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -20px;
+    margin-top: -21px;
+    border: 2px solid #fff;
+    border-radius: 1000px;
+    z-index: 20;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgb(12, 12, 12);
+}
+
+.slider-left-arrow,
+.slider-right-arrow {
+    width: 0;
+    height: 0;
+    border: 6px inset transparent;
+    position: absolute;
+    top: 50%;
+    margin-top: -6px;
+}
+
+.slider-left-arrow {
+    border-right: 6px solid #fff;
+    left: 50%;
+    margin-left: -17px;
+}
+
+.slider-right-arrow {
+    border-left: 6px solid #fff;
+    right: 50%;
+    margin-right: -17px;
+}
+
+.slider::before {
+    bottom: 50%;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgb(12, 12, 12);
+}
+
+.slider::after {
+    top: 50%;
+    margin-top: 20.5px;
+    box-shadow: 0 0 5px rgb(12, 12, 12);
+}
+
+.slider::before,
+.slider::after {
+    content: " ";
+    display: block;
+    width: 2px;
+    background: #fff;
+    height: 9999px;
+    position: absolute;
+    left: 50%;
+    margin-left: -1.5px;
+}
+</style>
+<script>
+    import '../scripts/compareImages'
+</script>

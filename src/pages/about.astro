@@ -1,0 +1,19 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Prose from '@/components/Prose.astro';
+
+const entry = await getEntry('content', 'about');
+const { Content } = await render(entry!);
+
+const pageTitle = 'About AI Background Remover';
+const secondTitle = 'Free, Batch, No Login, No Quality Loss';
+const title =
+  'About | Free AI Background Remover. No Signup, No Quality Loss - BgGone';
+---
+
+<BaseLayout pageTitle={pageTitle} title={title}>
+  <Prose>
+    <Content />
+  </Prose>
+</BaseLayout>

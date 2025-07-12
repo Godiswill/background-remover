@@ -1,16 +1,62 @@
 ---
+import { Image } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import Prose from '@/components/Prose.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SelectImage from '@/components/SelectImage';
+import car from '@/images/car.jpg';
+import dog from '../images/dog.jpg';
+import eagle from '../images/eagle.jpg';
+import love from '../images/love.jpg';
+import motorcycle from '../images/motorcycle.jpg';
+const exampleImgs = [
+  { src: car, alt: 'Car | ai background remover - BgGone' },
+  { src: dog, alt: 'Pet | ai background removal - BgGone' },
+  { src: eagle, alt: 'Animal | ai remove background - BgGone' },
+  { src: love, alt: 'People | ai remove the background of people - BgGone' },
+  { src: motorcycle, alt: 'Sports | ai remove bg - BgGone' },
+];
+const pageTitle = 'AI Background Remover';
+const secondTitle = 'Free, Batch, No Login, No Quality Loss';
+const title = 'Free AI Background Remover. No Signup, No Quality Loss - BgGone';
 
+const entry = await getEntry('content', 'index');
+const { Content } = await render(entry!);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>background remover</title>
-	</head>
-	<body>
-		<h1>free background remover</h1>
-	</body>
-</html>
+<BaseLayout pageTitle={pageTitle} secondTitle={secondTitle} title={title}>
+  <SelectImage client:load>
+    {
+      exampleImgs.map(({ src, alt }) => (
+        <Image
+          class="w-13 md:w-16 rounded-md cursor-pointer"
+          src={src}
+          alt={alt}
+        />
+      ))
+    }
+  </SelectImage>
+
+  <div class="mt-12 px-4">
+    <Prose>
+      <Content />
+    </Prose>
+
+    <div class="mt-4">
+      <a class="cursor-pointer hover:underline" id="back-to-top"
+        >Remove Backgrounds Now</a
+      >
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const backToTopButton = document.getElementById('back-to-top');
+  backToTopButton?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  });
+</script>
