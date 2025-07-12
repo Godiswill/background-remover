@@ -78,7 +78,10 @@ const description =
       const params = new URLSearchParams(window.location.search);
 
       const isDebug = !!params.get('debug');
-      if (isDebug && /mobile/i.test(navigator.userAgent)) {
+      if (
+        (isDebug || window.location.protocol !== 'https:') &&
+        /mobile/i.test(navigator.userAgent)
+      ) {
         const script = document.createElement('script');
         script.src = '/eruda.js';
         script.onload = () => eruda.init();

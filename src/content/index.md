@@ -49,11 +49,14 @@ Unlike other background removal tools, this one:
 - Costs nothing — no usage limits or paywalls
 
 ## 💡 FAQ
-### What image formats are supported?
-We support common image formats including JPG, PNG, WEBP, and AVIF.
-
 ### Why is the first processing slow?
 On the first run, the necessary data (~80MB) will be fetched and stored in the browser cache. Subsequent processing will be much faster.
+
+### Is there a limit to the number of images I can process in batch?
+While batch processing is supported, uploading too many large images at once may cause memory issues. On mobile devices, a high-memory device is strongly recommended.
+
+### What image formats are supported?
+We support common image formats including JPG, PNG, WEBP, and AVIF.
 
 ### Is there an image size limit?
 For optimal performance and browser stability, we recommend images under 10MB. Larger images may still work but could affect processing speed.

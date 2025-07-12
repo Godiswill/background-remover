@@ -25,6 +25,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
   const fileInputId = useId();
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [outOfMemory, setOutOfMemory] = useState(false);
   const [imgSliders, setImgSliders] = useState<IPreviewDownloadProps[]>();
   const dropRef = useRef<HTMLLabelElement>(null);
   const [time, setTime] = useState('');
@@ -41,16 +42,17 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
 
       const startTime = performance.now();
       setIsLoading(true);
+      setOutOfMemory(false);
       const isMobile = /mobile/i.test(navigator.userAgent);
       const result = await Promise.allSettled(
         imgFiles.map((file) =>
           removeBackground(file, {
-            device: isMobile ? 'cpu' : 'gpu',
+            device: navigator.gpu ? 'gpu' : 'cpu',
             publicPath: import.meta.env.PROD
               ? 'https://bgg.one/ai-model/'
               : 'http://localhost:4321/ai-model/',
             progress: (key, current, total) => {
-              console.log(`Downloading ${key}: ${current} of ${total}`);
+              // console.log(`Downloading ${key}: ${current} of ${total}`);
               if (
                 typeof current === 'number' &&
                 (current === total || total < 8)
@@ -61,7 +63,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
               }
             },
             model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
-            proxyToWorker: true,
+            proxyToWorker: !!navigator.gpu,
             debug: true,
             // fetchArgs: {
             //   mode: 'no-cors',
@@ -89,6 +91,8 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           });
           return fulfilled;
         });
+      } else {
+        setOutOfMemory(true);
       }
       setIsLoading(false);
       const duringTime = performance.now() - startTime;
@@ -160,7 +164,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
 
   return (
     <>
-      <div className="relative opacity-90 text-sm h-40 sm:h-50 md:h-60 xl:h-70 m-auto bg-black/2 rounded-lg border-2 border-dashed border-[#d9d9d9] hover:border-sky-500 transition-[border-color]">
+      <div className="relative opacity-90 text-sm h-50 sm:h-50 md:h-60 xl:h-70 m-auto bg-black/2 rounded-lg border-2 border-dashed border-[#d9d9d9] hover:border-sky-500 transition-[border-color]">
         <input
           type="file"
           accept="image/*"
@@ -191,7 +195,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
                 // className="text-gray-500"
                 alt="Select multiple images from your device, paste them from your clipboard, or drag and drop them onto the page."
               />
-              <div>
+              <div className="text-sm sm:text-base">
                 <p className="mt-2">Click to Pick</p>
                 <p className="my-1">Drag & Drop</p>
                 <p>Paste Image (Ctrl+V/Cmd+V)</p>
@@ -212,6 +216,12 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           {children}
         </div>
       </div>
+      {outOfMemory && (
+        <div className="text-rose-600 border-2 border-dashed rounded-md px-4 py-2 text-center md:text-lg">
+          ⚠️ Your device may struggle with this task. Try using a desktop for
+          better results.
+        </div>
+      )}
       {imgSliders?.length && (
         <div>
           <div className="font-bold text-center my-4 text-md text-gray-900">
