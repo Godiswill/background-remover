@@ -73,7 +73,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
       //     })
       //   )
       // );
-      const result = [];
+      const result: Array<PromiseSettledResult<Blob>> = [];
       for (const file of imgFiles) {
         try {
           const output = await removeBackground(file, {
@@ -93,7 +93,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
               }
             },
             model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
-            // proxyToWorker: !!navigator.gpu,
+            proxyToWorker: true,
             debug:
               import.meta.env.DEV ||
               !!new URLSearchParams(window.location.search).get('debug'),
@@ -263,7 +263,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           <div className="font-bold text-center my-4 text-md text-gray-900">
             Done! Time taken: {time}
           </div>
-          <div className={imgSliders.length > 2 ? `md:columns-2 md:gap-6` : ''}>
+          <div className={imgSliders.length > 1 ? `md:columns-2 md:gap-6` : ''}>
             {imgSliders?.map(({ beforeSrc, afterSrc, afterFile }) => (
               <PreviewDownload
                 className="break-inside-avoid mb-5"
