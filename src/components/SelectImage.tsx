@@ -44,9 +44,39 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
       setIsLoading(true);
       setOutOfMemory(false);
       const isMobile = /mobile/i.test(navigator.userAgent);
-      const result = await Promise.allSettled(
-        imgFiles.map((file) =>
-          removeBackground(file, {
+      // const result = await Promise.allSettled(
+      //   imgFiles.map((file) =>
+      //     removeBackground(file, {
+      //       device: navigator.gpu ? 'gpu' : 'cpu',
+      //       publicPath: import.meta.env.PROD
+      //         ? 'https://bgg.one/ai-model/'
+      //         : 'http://localhost:4321/ai-model/',
+      //       progress: (key, current, total) => {
+      //         // console.log(`Downloading ${key}: ${current} of ${total}`);
+      //         if (
+      //           typeof current === 'number' &&
+      //           (current === total || total < 8)
+      //         ) {
+      //           setIsDownloading(false);
+      //         } else {
+      //           setIsDownloading(true);
+      //         }
+      //       },
+      //       model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
+      //       // proxyToWorker: !!navigator.gpu,
+      //       debug:
+      //         import.meta.env.DEV ||
+      //         !!new URLSearchParams(window.location.search).get('debug'),
+      //       // fetchArgs: {
+      //       //   mode: 'no-cors',
+      //       // },
+      //     })
+      //   )
+      // );
+      const result = [];
+      for (const file of imgFiles) {
+        try {
+          const output = await removeBackground(file, {
             device: navigator.gpu ? 'gpu' : 'cpu',
             publicPath: import.meta.env.PROD
               ? 'https://bgg.one/ai-model/'
@@ -63,14 +93,20 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
               }
             },
             model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
-            proxyToWorker: !!navigator.gpu,
-            debug: true,
+            // proxyToWorker: !!navigator.gpu,
+            debug:
+              import.meta.env.DEV ||
+              !!new URLSearchParams(window.location.search).get('debug'),
             // fetchArgs: {
             //   mode: 'no-cors',
             // },
-          })
-        )
-      );
+          });
+          result.push({ status: 'fulfilled', value: output });
+        } catch (err) {
+          console.error('Failed to process', file.name, err);
+          result.push({ status: 'rejected', reason: err });
+        }
+      }
       console.log('result', result);
       const fulfilled = result.reduce((pre, cur, i) => {
         if (cur.status === 'fulfilled') {
