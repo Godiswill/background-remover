@@ -37,7 +37,7 @@ export default function PreviewDownload({
   return (
     <div className={className}>
       <ImgCompareSlider beforeSrc={beforeSrc} afterSrc={afterSrc} />
-      <div className="my-4 flex justify-between">
+      <div className="my-4 flex justify-around">
         <button
           onClick={preview}
           className="cursor-pointer inline-flex justify-center rounded-md text-sm/6 font-semibold text-gray-950 ring-1 ring-gray-950/10 hover:ring-gray-950/20 px-4 py-2"
@@ -52,7 +52,7 @@ export default function PreviewDownload({
         </button>
         <button
           onClick={saveFile}
-          className="cursor-pointer inline-flex justify-center rounded-md bg-sky-600 px-4 py-2 text-sm/6∂ leading-5 font-semibold text-white hover:bg-sky-700  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          className="cursor-pointer inline-flex justify-center rounded-md bg-sky-600 px-4 py-2 text-sm/6∂ leading-5 font-semibold text-white hover:bg-sky-500  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
         >
           Save
         </button>
