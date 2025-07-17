@@ -81,12 +81,14 @@ export default function ImgCompareSlider({
           backgroundPosition: `0 0, 0 10px, 10px -10px, -10px 0px`,
         }}
         src={afterSrc}
+        alt="After | BgGone - Free AI Background Remover"
       />
       <img
         ref={imgBeforeRef}
         className="w-full h-auto absolute top-0"
         src={beforeSrc}
         style={{ clipPath: `inset(0 50% 0 0)` }}
+        alt="Before | BgGone - Free AI Background Remover"
       />
       <div
         ref={sliderRef}

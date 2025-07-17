@@ -20,6 +20,7 @@ const description =
       href="/favicon_114x114.png"
       sizes="114x114"
     />
+    <link rel="apple-touch-icon" href="/logo.png" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no,viewport-fit=cover"
@@ -45,6 +46,16 @@ const description =
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://bgg.one/bg-gone.jpg" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "BgGone",
+        "url": "https://bgg.one",
+        "logo": "https://bgg.one/logo.png"
+      }
+    </script>
   </head>
   <body class="px-4">
     <Header />
