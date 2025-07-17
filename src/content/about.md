@@ -50,4 +50,4 @@ Download the transparent PNG instantly
 ## 👇 Try It Now — It’s Free
 Drop your images here and see the background disappear like magic ✨
 
-[🔁 Remove Background Now]
+[🔁 Remove Background Now](https://bgg.one)
