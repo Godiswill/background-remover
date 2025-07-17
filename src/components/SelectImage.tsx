@@ -78,9 +78,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         try {
           const output = await removeBackground(file, {
             device: navigator.gpu ? 'gpu' : 'cpu',
-            publicPath: import.meta.env.PROD
-              ? 'https://bgg.one/ai-model/'
-              : 'http://localhost:4321/ai-model/',
+            publicPath: `${location.href}ai-model/`,
             progress: (key, current, total) => {
               // console.log(`Downloading ${key}: ${current} of ${total}`);
               if (
