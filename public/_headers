@@ -1,8 +1,4 @@
-/_astro/*.js
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
-
-/_astro/*.mjs
+/_astro/*.wasm
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
 
