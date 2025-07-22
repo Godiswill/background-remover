@@ -1,8 +1,8 @@
 import { useState, useId, useEffect, useRef, useCallback } from 'react';
 import { removeBackground } from '@imgly/background-removal';
+import JSZip from 'jszip';
+import FileSaver from 'file-saver';
 import PreviewDownload from './PreviewDownload';
-import type { IPreviewDownloadProps } from './PreviewDownload';
-import uploadImg from '../images/upload.svg';
 
 function formatTime(ms: number) {
   const totalSeconds = ms / 1000;
@@ -26,114 +26,98 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [outOfMemory, setOutOfMemory] = useState(false);
-  const [imgSliders, setImgSliders] = useState<IPreviewDownloadProps[]>();
+  const [imgSliders, setImgSliders] = useState<
+    {
+      beforeFile: Blob & { name: string };
+      afterFile?: Blob & { name: string };
+      status?: 'fulfilled' | 'rejected' | 'processing';
+    }[]
+  >();
+  const [format, setFormat] = useState<
+    'image/png' | 'image/jpeg' | 'image/webp'
+  >('image/png');
   const dropRef = useRef<HTMLLabelElement>(null);
   const [time, setTime] = useState('');
 
-  const handleFiles = useCallback(
-    async (files?: FileList | File[] | null) => {
-      if (isLoading || !files?.length) return;
+  const handleFiles = useCallback(async (files?: FileList | File[] | null) => {
+    if (!files?.length) return;
 
-      const imgFiles = Array.from(files).filter((it) =>
-        it.type.startsWith('image/')
-      );
+    const imgFiles = Array.from(files).filter((it) =>
+      it.type.startsWith('image/')
+    );
 
-      if (!imgFiles?.length) return;
+    if (!imgFiles?.length) return;
+    setOutOfMemory(false);
+    setImgSliders(
+      imgFiles.map((file) => ({
+        beforeFile: file,
+      }))
+    );
+  }, []);
 
-      const startTime = performance.now();
-      setIsLoading(true);
-      setOutOfMemory(false);
-      const isMobile = /mobile/i.test(navigator.userAgent);
-      // const result = await Promise.allSettled(
-      //   imgFiles.map((file) =>
-      //     removeBackground(file, {
-      //       device: navigator.gpu ? 'gpu' : 'cpu',
-      //       publicPath: import.meta.env.PROD
-      //         ? 'https://bgg.one/ai-model/'
-      //         : 'http://localhost:4321/ai-model/',
-      //       progress: (key, current, total) => {
-      //         // console.log(`Downloading ${key}: ${current} of ${total}`);
-      //         if (
-      //           typeof current === 'number' &&
-      //           (current === total || total < 8)
-      //         ) {
-      //           setIsDownloading(false);
-      //         } else {
-      //           setIsDownloading(true);
-      //         }
-      //       },
-      //       model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
-      //       // proxyToWorker: !!navigator.gpu,
-      //       debug:
-      //         import.meta.env.DEV ||
-      //         !!new URLSearchParams(window.location.search).get('debug'),
-      //       // fetchArgs: {
-      //       //   mode: 'no-cors',
-      //       // },
-      //     })
-      //   )
-      // );
-      const result: Array<PromiseSettledResult<Blob>> = [];
-      for (const file of imgFiles) {
-        try {
-          const output = await removeBackground(file, {
-            device: navigator.gpu ? 'gpu' : 'cpu',
-            publicPath: `${location.href}ai-model/`,
-            progress: (key, current, total) => {
-              // console.log(`Downloading ${key}: ${current} of ${total}`);
-              if (
-                typeof current === 'number' &&
-                (current === total || total < 8)
-              ) {
-                setIsDownloading(false);
-              } else {
-                setIsDownloading(true);
-              }
-            },
-            model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
-            proxyToWorker: true,
-            debug:
-              import.meta.env.DEV ||
-              !!new URLSearchParams(window.location.search).get('debug'),
-            // fetchArgs: {
-            //   mode: 'no-cors',
-            // },
-          });
-          result.push({ status: 'fulfilled', value: output });
-        } catch (err) {
-          console.error('Failed to process', file.name, err);
-          result.push({ status: 'rejected', reason: err });
-        }
-      }
-      console.log('result', result);
-      const fulfilled = result.reduce((pre, cur, i) => {
-        if (cur.status === 'fulfilled') {
-          pre.push({
-            beforeSrc: URL.createObjectURL(imgFiles[i]),
-            afterSrc: URL.createObjectURL(cur.value),
-            afterFile: cur.value,
-          });
-        }
-        return pre;
-      }, [] as IPreviewDownloadProps[]);
-      console.log('fulfilled', fulfilled);
-      if (fulfilled.length) {
-        setImgSliders((pre) => {
-          pre?.forEach(({ beforeSrc, afterSrc }) => {
-            URL.revokeObjectURL(beforeSrc);
-            URL.revokeObjectURL(afterSrc);
-          });
-          return fulfilled;
+  const remove = useCallback(async () => {
+    if (isLoading || !imgSliders?.length) return;
+
+    const startTime = performance.now();
+    setIsLoading(true);
+    setOutOfMemory(false);
+    const isMobile = /mobile/i.test(navigator.userAgent);
+    // const result: Array<PromiseSettledResult<Blob>> = [];
+    for (const item of imgSliders) {
+      const { beforeFile: file } = item;
+      try {
+        item.status = 'processing';
+        setImgSliders([...imgSliders]);
+        const output = await removeBackground(file, {
+          device: navigator.gpu ? 'gpu' : 'cpu',
+          publicPath: `${location.href}ai-model/`,
+          progress: (key, current, total) => {
+            // console.log(`Downloading ${key}: ${current} of ${total}`);
+            if (
+              typeof current === 'number' &&
+              (current === total || total < 8)
+            ) {
+              setIsDownloading(false);
+            } else {
+              setIsDownloading(true);
+            }
+          },
+          model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
+          proxyToWorker: true,
+          debug:
+            import.meta.env.DEV ||
+            !!new URLSearchParams(window.location.search).get('debug'),
+          // fetchArgs: {
+          //   mode: 'no-cors',
+          // },
+          output: {
+            format,
+            quality: 0.5,
+          },
         });
-      } else {
-        setOutOfMemory(true);
+        item.status = 'fulfilled';
+        item.afterFile = output;
+        output.name =
+          file.name.replace(/\.\w+$/, '') +
+          '(Free AI Background Remover | BgGone)' +
+          output.type.replace(/^\w+\//, '.');
+      } catch (err) {
+        console.error('Failed to process', file.name, err);
+        item.status = 'rejected';
       }
-      setIsLoading(false);
-      const duringTime = performance.now() - startTime;
-      setTime(formatTime(duringTime));
-    },
-    [isLoading]
-  );
+    }
+    console.log('result', imgSliders);
+    const fulfilled = imgSliders.filter((it) => it.status === 'fulfilled');
+    console.log('fulfilled', fulfilled);
+    if (!fulfilled.length) {
+      setOutOfMemory(true);
+    }
+    setImgSliders([...imgSliders]);
+    setIsLoading(false);
+
+    const duringTime = performance.now() - startTime;
+    setTime(formatTime(duringTime));
+  }, [isLoading, imgSliders, format]);
 
   useEffect(() => {
     const drop = dropRef.current;
@@ -191,86 +175,190 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
     if (e.target instanceof HTMLImageElement) {
       const response = await fetch(e.target.src);
       const blob = await response.blob();
-      const file = new File([blob], 'temp', { type: blob.type });
+      const file = new File([blob], e.target.alt, { type: blob.type });
       handleFiles([file]);
     }
   }
 
+  const imgs = imgSliders
+    ?.filter((it) => !!it.afterFile)
+    ?.map((it) => it.afterFile);
+  const isDone = !isLoading && !!imgs?.length;
+
+  const downloadSingle = () => {
+    if (!isDone) return;
+
+    for (let file of imgs) {
+      FileSaver.saveAs(file!, file!.name);
+    }
+  };
+
+  const downloadAll = async () => {
+    if (!isDone) return;
+
+    try {
+      const zip = new JSZip();
+      imgs.forEach((file) => {
+        zip.file(file!.name, file!);
+      });
+      const content = await zip.generateAsync({ type: 'blob' });
+      FileSaver.saveAs(content, 'BgGone.zip');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to package images.');
+    }
+  };
+
   return (
     <>
-      <div className="relative opacity-90 text-sm h-50 sm:h-50 md:h-60 xl:h-70 m-auto bg-black/2 rounded-lg border-2 border-dashed border-[#d9d9d9] hover:border-sky-500 transition-[border-color]">
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          id={fileInputId}
-          className="opacity-0 h-0"
-          onChange={(e) => handleFiles(e.target.files)}
-        />
-        {isLoading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="main-width">
+        <div className="relative opacity-90 text-sm h-50 sm:h-50 md:h-60 xl:h-70 m-auto bg-black/2 rounded-lg border-2 border-dashed border-[#d9d9d9] hover:border-sky-500 transition-[border-color]">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            id={fileInputId}
+            className="opacity-0 h-0"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+          {/* <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="w-8 h-8 border-4 border-sky-500 border-t-black/10 border-r-black/10 rounded-full animate-spin"></div>
             <p className="text-sky-500 mt-4">
               {isDownloading
                 ? 'Downloading AI model...'
                 : 'Removing background...'}
             </p>
-          </div>
-        ) : (
+          </div> */}
           <label
             ref={dropRef}
             htmlFor={fileInputId}
             className="absolute inset-0 flex justify-center items-center cursor-pointer text-center"
           >
             <div>
-              <img
-                className="w-9 m-auto mb-2"
-                src={uploadImg.src}
-                // className="text-gray-500"
-                alt="Select multiple images from your device, paste them from your clipboard, or drag and drop them onto the page."
-              />
+              <svg
+                className="w-10 h-10 m-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
               <div className="text-sm sm:text-base">
-                <p className="mt-2">Click to Pick</p>
+                <p className="mt-2">Click</p>
                 <p className="my-1">Drag & Drop</p>
                 <p>Paste Image (Ctrl+V/Cmd+V)</p>
               </div>
             </div>
           </label>
-        )}
-      </div>
-      <div className="my-4 block sm:flex items-center">
-        <div className="text-center mb-2 sm:text-start text-sm sm:mr-8 xl:text-lg xl:mr-16">
-          <p>Start Removing Backgrounds</p>
-          <p>No image? Try one of these:</p>
         </div>
-        <div
-          className="flex flex-1 justify-around sm:justify-between"
-          onClickCapture={exampleImgClick}
-        >
-          {children}
-        </div>
-      </div>
-      {outOfMemory && (
-        <div className="text-rose-600 border-2 border-dashed rounded-md px-4 py-2 text-center md:text-lg">
-          ⚠️ Your device may struggle with this task. Try using a desktop for
-          better results.
-        </div>
-      )}
-      {imgSliders?.length && (
-        <div>
-          <div className="font-bold text-center my-4 text-md text-gray-900">
-            Done! Time taken: {time}
+        <div className="my-4 block sm:flex items-center">
+          <div className="text-center mb-2 sm:text-start text-sm sm:mr-8 xl:text-lg xl:mr-16">
+            <p>Start Removing Backgrounds</p>
+            <p>No image? Try one of these:</p>
           </div>
-          <div className={imgSliders.length > 1 ? `md:columns-2 md:gap-6` : ''}>
-            {imgSliders?.map(({ beforeSrc, afterSrc, afterFile }) => (
+          <div
+            className="flex flex-1 justify-around sm:justify-between"
+            onClickCapture={exampleImgClick}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+      {!!imgSliders?.length && (
+        <div>
+          <div className="bg-black/2 rounded-lg p-4 main-width">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <span className="font-semibold">
+                  Selected: <span id="imageCount">{imgSliders?.length}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <label className="text-black/80">Output format:</label>
+                  <select
+                    className="px-3 py-1 rounded-lg bg-white/20 border border-black/30"
+                    value={format}
+                    onChange={(e) => setFormat(e.target.value)}
+                  >
+                    <option value="image/png">PNG</option>
+                    {/* <option value="image/jpeg">JPEG</option> */}
+                    <option value="image/webp">WebP</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  disabled={isLoading}
+                  onClick={remove}
+                  className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  {isDownloading
+                    ? 'Downloading AI model...'
+                    : isLoading
+                    ? 'Removing background...'
+                    : 'Start'}
+                </button>
+                <button
+                  disabled={isLoading}
+                  onClick={() => setImgSliders([])}
+                  className="px-4 py-2 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="main-width text-rose-600 rounded-md pt-2 pb-6 md:text-lg">
+            {outOfMemory && (
+              <span>
+                ⚠️ Your device may struggle with this task. Try using a desktop
+                for better results.
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mx-auto sm:w-lg md:w-2xl lg:w-4xl xl:w-5xl 2xl:w-6xl">
+            {imgSliders?.map(({ beforeFile, afterFile, status }, index) => (
               <PreviewDownload
-                className="break-inside-avoid mb-5"
-                key={beforeSrc + afterSrc}
-                beforeSrc={beforeSrc}
-                afterSrc={afterSrc}
+                className="break-inside-avoid mb-5 image-card border border-gray-200"
+                key={beforeFile.name + (afterFile?.name || '')}
+                beforeFile={beforeFile}
                 afterFile={afterFile}
+                processing={status === 'processing'}
+                onClose={() =>
+                  setImgSliders(imgSliders.filter((_, i) => i !== index))
+                }
               />
             ))}
+          </div>
+          <div
+            className={`main-width bg-black/2 text-gray-900 rounded-lg p-6 mt-4 ${
+              isDone ? 'block' : 'hidden'
+            }`}
+          >
+            <div className="text-center">
+              <h3 className="text-2xl font-semibold mb-4">
+                🎉 Done! Time taken: {time}
+              </h3>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={downloadSingle}
+                  className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={downloadAll}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  Download All as ZIP
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

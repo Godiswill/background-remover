@@ -1,62 +1,130 @@
+import { useEffect, useState } from 'react';
 import ImgCompareSlider from './ImgCompareSlider';
+import ImgModal from './ImgModal';
+import FileSaver from 'file-saver';
 
 export interface IPreviewDownloadProps {
-  beforeSrc: string;
-  afterSrc: string;
-  afterFile: Blob;
+  beforeFile: Blob;
+  afterFile?: Blob & { name: string };
+  processing: boolean;
   className?: string;
+  onClose: () => void;
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 export default function PreviewDownload({
-  beforeSrc,
-  afterSrc,
+  beforeFile,
   afterFile,
   className,
+  processing,
+  onClose,
 }: IPreviewDownloadProps) {
+  const [beforeSrc, setBeforeSrc] = useState<string>();
+  const [afterSrc, setAfterSrc] = useState<string>();
+  const [show, setShow] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   function preview() {
-    window.open(afterSrc, '_blank');
+    setShow(true);
   }
 
   async function copyFile() {
+    if (!afterFile) return;
+
     const clipboardItem = new ClipboardItem({
       [afterFile.type]: afterFile,
     });
     await navigator.clipboard.write([clipboardItem]);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
     console.log('good');
   }
 
   async function saveFile() {
-    const a = document.createElement('a');
-    a.href = afterSrc;
-    a.download = 'download.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (!afterFile) return;
+
+    FileSaver.saveAs(afterFile, afterFile.name);
   }
 
+  useEffect(() => {
+    const url = URL.createObjectURL(beforeFile);
+    setBeforeSrc(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [beforeFile]);
+
+  useEffect(() => {
+    if (!afterFile) return;
+
+    const url = URL.createObjectURL(afterFile);
+    setAfterSrc(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [afterFile]);
   return (
-    <div className={className}>
-      <ImgCompareSlider beforeSrc={beforeSrc} afterSrc={afterSrc} />
-      <div className="my-4 flex justify-around">
-        <button
-          onClick={preview}
-          className="cursor-pointer inline-flex justify-center rounded-md text-sm/6 font-semibold text-gray-950 ring-1 ring-gray-950/10 hover:ring-gray-950/20 px-4 py-2"
-        >
-          Preview
-        </button>
-        <button
-          onClick={copyFile}
-          className="cursor-pointer inline-flex justify-center rounded-md bg-sky-600 px-4 py-2 text-sm/6∂ leading-5 font-semibold text-white hover:bg-sky-500  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
-        >
-          Copy
-        </button>
-        <button
-          onClick={saveFile}
-          className="cursor-pointer inline-flex justify-center rounded-md bg-sky-600 px-4 py-2 text-sm/6∂ leading-5 font-semibold text-white hover:bg-sky-500  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
-        >
-          Save
-        </button>
+    <div
+      className={`rounded-lg ${processing ? 'processing' : ''} ${className}`}
+    >
+      <ImgCompareSlider
+        beforeSrc={beforeSrc}
+        afterSrc={afterSrc}
+        processing={processing}
+        onClose={onClose}
+      />
+      <div className="p-4">
+        <h3 className="font-semibold text-sm mb-2 truncate">
+          {beforeFile.name}
+        </h3>
+        <p className="text-black/70 text-xs mb-3 flex justify-between">
+          <span>{formatFileSize(beforeFile.size)}</span>
+          {afterFile?.size && (
+            <span>After: {formatFileSize(afterFile.size)}</span>
+          )}
+        </p>
+        <div className="flex gap-8">
+          <button
+            onClick={preview}
+            className="flex-1 px-3 py-2 rounded-lg text-sm/6 font-semibold text-gray-950 ring-1 ring-gray-950/10 hover:ring-gray-950/20  transition-all"
+            // className="flex-1 px-3 py-2 bg-violet-500 text-white rounded-lg text-sm hover:bg-violet-600 transition-all"
+          >
+            Preview
+          </button>
+          {!!afterSrc && (
+            <>
+              <button
+                onClick={copyFile}
+                className="flex-1 px-3 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600 transition-all"
+              >
+                {copied ? '✅ Copied!' : 'Copy'}
+              </button>
+              <button
+                onClick={saveFile}
+                className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-all"
+              >
+                Save
+              </button>
+            </>
+          )}
+        </div>
       </div>
+      {beforeSrc && (
+        <ImgModal
+          isVisible={show}
+          url={afterSrc || beforeSrc}
+          onClose={() => setShow(false)}
+        />
+      )}
     </div>
   );
 }
