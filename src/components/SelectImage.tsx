@@ -169,14 +169,17 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
     };
   }, [handleFiles]);
 
+  const [loadingImg, setLoadingImg] = useState(false);
   async function exampleImgClick(
     e: React.MouseEvent<HTMLDivElement | HTMLImageElement, MouseEvent>
   ) {
     if (e.target instanceof HTMLImageElement) {
+      setLoadingImg(true);
       const response = await fetch(e.target.src);
       const blob = await response.blob();
       const file = new File([blob], e.target.alt, { type: blob.type });
       handleFiles([file]);
+      setLoadingImg(false);
     }
   }
 
@@ -262,9 +265,16 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             <p>No image? Try one of these:</p>
           </div>
           <div
-            className="flex flex-1 justify-around sm:justify-between"
+            className="relative flex flex-1 justify-around sm:justify-between"
             onClickCapture={exampleImgClick}
           >
+            <div
+              className={`absolute inset-0 bg-black/3 ${
+                loadingImg ? 'flex' : 'hidden'
+              } items-center justify-center`}
+            >
+              <div className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
+            </div>
             {children}
           </div>
         </div>
