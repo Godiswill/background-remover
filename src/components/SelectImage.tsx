@@ -99,7 +99,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         item.afterFile = output;
         output.name =
           file.name.replace(/\.\w+$/, '') +
-          '(Free AI Background Remover | BgGone)' +
+          '_BgGone' +
           output.type.replace(/^\w+\//, '.');
       } catch (err) {
         console.error('Failed to process', file.name, err);
