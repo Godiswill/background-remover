@@ -239,7 +239,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           <label
             ref={dropRef}
             htmlFor={fileInputId}
-            className="drop-zone absolute inset-6 border-3 border-dashed border-black/10 dark:border-white/40 rounded-xl flex justify-center items-center cursor-pointer text-center"
+            className="drop-zone absolute inset-2 border-2 sm:inset-4 lg:inset-6 sm:border-3 border-dashed border-black/10 dark:border-white/40 rounded-xl flex justify-center items-center cursor-pointer text-center"
           >
             <div>
               <svg
