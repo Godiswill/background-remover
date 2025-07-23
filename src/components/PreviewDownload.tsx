@@ -74,7 +74,7 @@ export default function PreviewDownload({
   }, [afterFile]);
   return (
     <div
-      className={`rounded-lg ${processing ? 'processing' : ''} ${className}`}
+      className={`glass-effect ${processing ? 'processing' : ''} ${className}`}
     >
       <ImgCompareSlider
         beforeSrc={beforeSrc}
@@ -86,7 +86,7 @@ export default function PreviewDownload({
         <h3 className="font-semibold text-sm mb-2 truncate">
           {beforeFile.name}
         </h3>
-        <p className="text-black/70 text-xs mb-3 flex justify-between">
+        <p className="text-black/80 dark:text-white/80 text-xs mb-3 flex justify-between">
           <span>{formatFileSize(beforeFile.size)}</span>
           {afterFile?.size && (
             <span>After: {formatFileSize(afterFile.size)}</span>
@@ -95,8 +95,8 @@ export default function PreviewDownload({
         <div className="flex gap-8">
           <button
             onClick={preview}
-            className="flex-1 px-3 py-2 rounded-lg text-sm/6 font-semibold text-gray-950 ring-1 ring-gray-950/10 hover:ring-gray-950/20  transition-all"
-            // className="flex-1 px-3 py-2 bg-violet-500 text-white rounded-lg text-sm hover:bg-violet-600 transition-all"
+            // className="flex-1 px-3 py-2 rounded-lg text-sm/6 font-semibold text-gray-950 ring-1 ring-gray-950/10 hover:ring-gray-950/20  transition-all"
+            className="flex-1 px-3 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 transition-all"
           >
             Preview
           </button>
@@ -104,13 +104,13 @@ export default function PreviewDownload({
             <>
               <button
                 onClick={copyFile}
-                className="flex-1 px-3 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600 transition-all"
+                className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-all"
               >
                 {copied ? '✅ Copied!' : 'Copy'}
               </button>
               <button
                 onClick={saveFile}
-                className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-all"
+                className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-all"
               >
                 Save
               </button>

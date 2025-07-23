@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-display: var(
     --default-font-family,
@@ -27,17 +29,16 @@ button:disabled {
 }
 
 .glass-effect {
-  @apply bg-black/5 backdrop-blur-lg border border-blue-50;
+  @apply rounded-lg bg-black/2 backdrop-blur-[20px] border border-black/10 dark:bg-white/10 dark:border-white/20;
 }
 
 .drop-zone {
   transition: all 0.3s ease;
+  /* @apply bg-gray-500/10; */
 }
 
 .drop-zone.drag-over {
-  background: rgba(103, 126, 234, 0.1);
-  border-color: #667eea;
-  transform: scale(1.02);
+  @apply bg-gray-500/5 dark:bg-gray-500/10 border-sky-500 transform-[scale(1.02)];
 }
 
 .image-card {

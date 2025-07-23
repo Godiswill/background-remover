@@ -123,26 +123,30 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
     const drop = dropRef.current;
     if (!drop) return;
 
-    function preventDefaultEvent(e: Event) {
+    function dragOverEvent(e: DragEvent) {
       e.preventDefault();
+      drop?.classList.add('drag-over');
     }
-    ['dragenter', 'dragover', 'dragleave'].forEach((eventName) => {
-      drop.addEventListener(eventName, preventDefaultEvent);
-    });
+
+    function dragLeaveEvent(e: DragEvent) {
+      e.preventDefault();
+      drop?.classList.remove('drag-over');
+    }
 
     function dropEvent(e: DragEvent) {
       e.preventDefault();
-
+      drop?.classList.remove('drag-over');
       const files = e.dataTransfer?.files;
       handleFiles(files);
     }
 
+    drop.addEventListener('dragover', dragOverEvent);
+    drop.addEventListener('dragleave', dragLeaveEvent);
     drop.addEventListener('drop', dropEvent);
 
     return () => {
-      ['dragenter', 'dragover', 'dragleave'].forEach((eventName) => {
-        drop.removeEventListener(eventName, preventDefaultEvent);
-      });
+      drop.removeEventListener('dragover', dragOverEvent);
+      drop.removeEventListener('dragleave', dragLeaveEvent);
       drop.removeEventListener('drop', dropEvent);
     };
   }, [handleFiles]);
@@ -215,7 +219,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
   return (
     <>
       <div className="main-width">
-        <div className="relative opacity-90 text-sm h-50 sm:h-50 md:h-60 xl:h-70 m-auto bg-black/2 rounded-lg border-2 border-dashed border-[#d9d9d9] hover:border-sky-500 transition-[border-color]">
+        <div className="glass-effect relative text-sm h-48 xs:h-56 sm:h-60 md:h-64 lg:h-72 xl:h-80 3xl:h-96 h- m-auto transition-[border-color]">
           <input
             type="file"
             accept="image/*"
@@ -235,7 +239,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           <label
             ref={dropRef}
             htmlFor={fileInputId}
-            className="absolute inset-0 flex justify-center items-center cursor-pointer text-center"
+            className="drop-zone absolute inset-6 border-3 border-dashed border-black/10 dark:border-white/40 rounded-xl flex justify-center items-center cursor-pointer text-center"
           >
             <div>
               <svg
@@ -281,14 +285,14 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
       </div>
       {!!imgSliders?.length && (
         <div>
-          <div className="bg-black/2 rounded-lg p-4 main-width">
+          <div className="glass-effect p-4 main-width">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+              <div className="text-black/90 dark:text-white/90 flex items-center gap-4">
                 <span className="font-semibold">
-                  Selected: <span id="imageCount">{imgSliders?.length}</span>
+                  Selected: <span>{imgSliders?.length}</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <label className="text-black/80">Output format:</label>
+                  <label>Output format:</label>
                   <select
                     className="px-3 py-1 rounded-lg bg-white/20 border border-black/30"
                     value={format}
@@ -300,22 +304,22 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
                   </select>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   disabled={isLoading}
                   onClick={remove}
-                  className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all transform hover:scale-105 shadow-lg"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all transform hover:scale-105 shadow-lg"
                 >
                   {isDownloading
-                    ? 'Downloading AI model...'
+                    ? 'Loading model...'
                     : isLoading
-                    ? 'Removing background...'
+                    ? 'Removing...'
                     : 'Start'}
                 </button>
                 <button
                   disabled={isLoading}
                   onClick={() => setImgSliders([])}
-                  className="px-4 py-2 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105"
+                  className="px-4 py-2 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-all transform hover:scale-105"
                 >
                   Clear
                 </button>
@@ -346,7 +350,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             ))}
           </div>
           <div
-            className={`main-width bg-black/2 text-gray-900 rounded-lg p-6 mt-4 ${
+            className={`main-width glass-effect p-6 mt-4 ${
               isDone ? 'block' : 'hidden'
             }`}
           >
