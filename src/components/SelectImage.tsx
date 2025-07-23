@@ -70,7 +70,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         setImgSliders([...imgSliders]);
         const output = await removeBackground(file, {
           device: navigator.gpu ? 'gpu' : 'cpu',
-          publicPath: `${location.href}ai-model/`,
+          publicPath: `${location.origin}/ai-model/`,
           progress: (key, current, total) => {
             // console.log(`Downloading ${key}: ${current} of ${total}`);
             if (
