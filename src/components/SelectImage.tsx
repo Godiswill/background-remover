@@ -178,11 +178,23 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
   async function exampleImgClick(
     e: React.MouseEvent<HTMLDivElement | HTMLImageElement, MouseEvent>
   ) {
-    if (e.target instanceof HTMLImageElement) {
+    const img = e.target;
+    if (img instanceof HTMLImageElement) {
       setLoadingImg(true);
-      setLoadingImgLeft(e.target.offsetLeft);
-      const response = await fetch(e.target.src);
-      const blob = await response.blob();
+      setLoadingImgLeft(img.offsetLeft);
+      const blob = await new Promise<Blob | null>((resolve) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
+        canvas.toBlob(resolve);
+      });
+      // const response = await fetch(e.target.src);
+      // const blob = await response.blob();
+      if (!blob) {
+        throw Error('Image to Blob');
+      }
       const file = new File([blob], e.target.alt, { type: blob.type });
       handleFiles([file]);
       setLoadingImg(false);
