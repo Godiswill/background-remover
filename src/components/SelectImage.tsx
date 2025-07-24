@@ -174,11 +174,13 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
   }, [handleFiles]);
 
   const [loadingImg, setLoadingImg] = useState(false);
+  const [loadingImgLeft, setLoadingImgLeft] = useState(0);
   async function exampleImgClick(
     e: React.MouseEvent<HTMLDivElement | HTMLImageElement, MouseEvent>
   ) {
     if (e.target instanceof HTMLImageElement) {
       setLoadingImg(true);
+      setLoadingImgLeft(e.target.offsetLeft);
       const response = await fetch(e.target.src);
       const blob = await response.blob();
       const file = new File([blob], e.target.alt, { type: blob.type });
@@ -275,9 +277,12 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             <div
               className={`absolute inset-0 bg-black/3 ${
                 loadingImg ? 'flex' : 'hidden'
-              } items-center justify-center`}
+              } items-center`}
             >
-              <div className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
+              <div
+                style={{ left: loadingImgLeft }}
+                className="absolute ml-5 md:ml-6 inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"
+              ></div>
             </div>
             {children}
           </div>
@@ -311,7 +316,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
                   className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all transform hover:scale-105 shadow-lg"
                 >
                   {isDownloading
-                    ? 'Loading model...'
+                    ? 'Loading...'
                     : isLoading
                     ? 'Removing...'
                     : 'Start'}
