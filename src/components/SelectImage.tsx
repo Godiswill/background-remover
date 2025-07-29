@@ -21,6 +21,19 @@ function formatTime(ms: number) {
   }
 }
 
+export function isLowEndDevice() {
+  const nav = navigator;
+  const ua = nav.userAgent.toLowerCase();
+
+  const isOldAndroid = /android [0-7]\./.test(ua);
+  const isLowMemory = nav.deviceMemory && nav.deviceMemory <= 2;
+  const isLowCpu = nav.hardwareConcurrency && nav.hardwareConcurrency <= 2;
+  const noWebGL = !window.WebGLRenderingContext;
+  const noWebGPU = !('gpu' in nav);
+
+  return isOldAndroid || isLowMemory || isLowCpu || noWebGL || noWebGPU;
+}
+
 export default function SelectImage({ children }: React.PropsWithChildren) {
   const fileInputId = useId();
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +74,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
     const startTime = performance.now();
     setIsLoading(true);
     setOutOfMemory(false);
-    const isMobile = /mobile/i.test(navigator.userAgent);
+    const isLow = isLowEndDevice();
     // const result: Array<PromiseSettledResult<Blob>> = [];
     for (const item of imgSliders) {
       const { beforeFile: file } = item;
@@ -69,8 +82,9 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         item.status = 'processing';
         setImgSliders([...imgSliders]);
         const output = await removeBackground(file, {
-          device: navigator.gpu ? 'gpu' : 'cpu',
-          publicPath: `${location.origin}/ai-model/`,
+          device: isLow ? 'cpu' : 'gpu',
+          // https://staticimgly.com/@imgly/background-removal-data/YOUR_PACKAGE_VERSION/package.tgz
+          publicPath: `${location.origin}/ai-model/1.5.5/`,
           progress: (key, current, total) => {
             // console.log(`Downloading ${key}: ${current} of ${total}`);
             if (
@@ -82,7 +96,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
               setIsDownloading(true);
             }
           },
-          model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
+          model: isLow ? 'isnet_quint8' : 'isnet_fp16',
           proxyToWorker: true,
           debug:
             import.meta.env.DEV ||
@@ -92,7 +106,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           // },
           output: {
             format,
-            quality: 0.5,
+            quality: 0.6,
           },
         });
         item.status = 'fulfilled';
@@ -352,7 +366,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mx-auto sm:w-lg md:w-2xl lg:w-4xl xl:w-5xl 2xl:w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-3 main-max-width">
             {imgSliders?.map(({ beforeFile, afterFile, status }, index) => (
               <PreviewDownload
                 className="break-inside-avoid mb-5 image-card border border-gray-200"

@@ -10,7 +10,7 @@ export default function ({
 }) {
   return isVisible
     ? createPortal(
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-9999">
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-9999">
           <div className="relative flex items-center max-w-7xl h-1/2 md:h-2/3 lg:h-9/12 p-12 overflow-hidden">
             <img
               src={url}

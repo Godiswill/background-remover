@@ -28,6 +28,10 @@ button:disabled {
   @apply mx-auto sm:w-lg md:w-xl lg:w-2xl xl:w-3xl 2xl:w-4xl;
 }
 
+.main-max-width {
+  @apply mx-auto sm:w-lg md:w-2xl lg:w-4xl xl:w-5xl 2xl:w-6xl;
+}
+
 .glass-effect {
   @apply rounded-lg bg-black/2 backdrop-blur-[20px] border border-black/10 dark:bg-white/10 dark:border-white/20;
 }
