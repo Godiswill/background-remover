@@ -21,7 +21,7 @@ function formatTime(ms: number) {
   }
 }
 
-export function isLowEndDevice() {
+function isLowEndDevice() {
   const nav = navigator;
   const ua = nav.userAgent.toLowerCase();
 
@@ -97,6 +97,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             }
           },
           model: isLow ? 'isnet_quint8' : 'isnet_fp16',
+          // proxyToWorker: typeof SharedArrayBuffer !== 'undefined',
           proxyToWorker: true,
           debug:
             import.meta.env.DEV ||
@@ -106,7 +107,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           // },
           output: {
             format,
-            quality: 0.6,
+            quality: isLow ? 0.5 : 0.6,
           },
         });
         item.status = 'fulfilled';
@@ -118,6 +119,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
       } catch (err) {
         console.error('Failed to process', file.name, err);
         item.status = 'rejected';
+        item.err = err;
       }
     }
     console.log('result', imgSliders);
