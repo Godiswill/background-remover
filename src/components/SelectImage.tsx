@@ -84,7 +84,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         const output = await removeBackground(file, {
           device: isLow ? 'cpu' : 'gpu',
           // https://staticimgly.com/@imgly/background-removal-data/YOUR_PACKAGE_VERSION/package.tgz
-          publicPath: `${location.origin}/_models/dist/`,
+          publicPath: `${location.origin}/_models/release/`,
           progress: (key, current, total) => {
             // console.log(`Downloading ${key}: ${current} of ${total}`);
             if (
