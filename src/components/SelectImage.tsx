@@ -106,7 +106,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           // },
           output: {
             format,
-            quality: isLow ? 0.5 : 0.6,
+            quality: isLow ? 0.4 : 0.6,
           },
         });
         item.status = 'fulfilled';
