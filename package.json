@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "pre": "astro build && wait-on dist/index.html && astro preview",
     "dev": "astro dev --host",
     "build": "astro build",
     "preview": "astro preview --host",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
-    "@types/file-saver": "^2.0.7"
+    "@types/file-saver": "^2.0.7",
+    "wait-on": "^8.0.4"
   }
 }
