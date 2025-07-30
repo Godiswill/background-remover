@@ -84,7 +84,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
         const output = await removeBackground(file, {
           device: isLow ? 'cpu' : 'gpu',
           // https://staticimgly.com/@imgly/background-removal-data/YOUR_PACKAGE_VERSION/package.tgz
-          publicPath: `${location.origin}/ai-model/1.5.5/`,
+          publicPath: `${location.origin}/_models/dist/`,
           progress: (key, current, total) => {
             // console.log(`Downloading ${key}: ${current} of ${total}`);
             if (
@@ -97,8 +97,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             }
           },
           model: isLow ? 'isnet_quint8' : 'isnet_fp16',
-          // proxyToWorker: typeof SharedArrayBuffer !== 'undefined',
-          proxyToWorker: true,
+          proxyToWorker: typeof SharedArrayBuffer !== 'undefined',
           debug:
             import.meta.env.DEV ||
             !!new URLSearchParams(window.location.search).get('debug'),
