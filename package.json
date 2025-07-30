@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "postinstall": "patch-package",
     "start": "astro build && wait-on dist/index.html && astro preview --host",
     "dev": "astro dev --host",
     "build": "astro build",
@@ -26,6 +27,8 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
     "@types/file-saver": "^2.0.7",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "wait-on": "^8.0.4"
   }
 }

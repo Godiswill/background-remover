@@ -64,8 +64,8 @@ export default defineConfig({
   vite: {
     plugins: [
       tailwindcss(),
-      requestAdapterInfoDev(),
-      requestAdapterInfoBuild(),
+      // requestAdapterInfoDev(),
+      // requestAdapterInfoBuild(),
     ],
     server: {
       headers: {

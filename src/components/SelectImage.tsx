@@ -97,7 +97,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             }
           },
           model: isLow ? 'isnet_quint8' : 'isnet_fp16',
-          proxyToWorker: typeof SharedArrayBuffer !== 'undefined',
+          proxyToWorker: true,
           debug:
             import.meta.env.DEV ||
             !!new URLSearchParams(window.location.search).get('debug'),
