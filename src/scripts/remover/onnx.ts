@@ -8,16 +8,14 @@ import * as ort_cpu from 'onnxruntime-web';
 import * as ort_gpu from 'onnxruntime-web/webgpu';
 
 import { loadAsUrl } from './resource';
-import { isMobileDevice } from './utils';
 import { webgpu, simd, maxNumThreads, threads } from './features';
 import type { Config } from './schema';
 
 async function createOnnxSession(model: any, config: Config) {
   const isSmallModel = !!config.mInfo.modelUrl;
-  const isMobile = isMobileDevice();
   const useWebGPU =
     !isSmallModel && config.device === 'gpu' && (await webgpu());
-  const useThreads = !isMobile && (await threads());
+  const useThreads = !isSmallModel && (await threads());
   const useSimd = simd();
   const proxyToWorker = config.proxyToWorker;
   const executionProviders = [useWebGPU ? 'webgpu' : 'wasm'];
@@ -33,7 +31,7 @@ async function createOnnxSession(model: any, config: Config) {
     // ort.env.logLevel = 'verbose';
   }
 
-  ort.env.wasm.numThreads = isMobile ? 1 : maxNumThreads();
+  ort.env.wasm.numThreads = isSmallModel ? 1 : maxNumThreads();
   ort.env.wasm.simd = simd();
   ort.env.wasm.proxy = proxyToWorker;
 
