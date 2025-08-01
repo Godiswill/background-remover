@@ -12,9 +12,10 @@ import * as feat from './features';
 import type { Config } from './schema';
 
 async function createOnnxSession(model: any, config: Config) {
+  const isSmallModel = !!config.mInfo.modelUrl;
   const useWebGPU =
-    !config.mInfo.modelUrl && config.device === 'gpu' && (await feat.webgpu());
-  const useThreads = await feat.threads();
+    !isSmallModel && config.device === 'gpu' && (await feat.webgpu());
+  const useThreads = !isSmallModel && (await feat.threads());
   const useSimd = feat.simd();
   const proxyToWorker = config.proxyToWorker;
   const executionProviders = [useWebGPU ? 'webgpu' : 'wasm'];
@@ -30,7 +31,7 @@ async function createOnnxSession(model: any, config: Config) {
     ort.env.logLevel = 'verbose';
   }
 
-  ort.env.wasm.numThreads = feat.maxNumThreads();
+  ort.env.wasm.numThreads = isSmallModel ? 1 : feat.maxNumThreads();
   ort.env.wasm.simd = feat.simd();
   ort.env.wasm.proxy = proxyToWorker;
 
