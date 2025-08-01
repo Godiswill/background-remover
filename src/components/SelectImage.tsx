@@ -1,7 +1,8 @@
 import { useState, useId, useEffect, useRef, useCallback } from 'react';
-import { removeBackground } from '@imgly/background-removal';
+// import { removeBackground } from '@imgly/background-removal';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
+import { removeBackground } from '@/scripts/remover';
 import PreviewDownload from './PreviewDownload';
 
 function formatTime(ms: number) {
@@ -21,6 +22,22 @@ function formatTime(ms: number) {
   }
 }
 
+function isMobileDevice() {
+  // 方案 1：User-Agent 判断（较准确）
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isMobileUA =
+    /android|iphone|ipad|ipod|windows phone|blackberry|mobile/i.test(ua);
+
+  // 方案 2：触摸能力（部分平板可能会误判）
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  // 方案 3：屏幕尺寸（防止误判需配合其它判断）
+  const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) < 768;
+
+  // 综合判断
+  return isMobileUA || (hasTouch && isSmallScreen);
+}
+
 function isLowEndDevice() {
   const nav = navigator;
   const ua = nav.userAgent.toLowerCase();
@@ -33,6 +50,8 @@ function isLowEndDevice() {
 
   return isOldAndroid || isLowMemory || isLowCpu || noWebGL || noWebGPU;
 }
+
+const smallModelKey = 'WasmOnnxModel';
 
 export default function SelectImage({ children }: React.PropsWithChildren) {
   const fileInputId = useId();
@@ -51,6 +70,19 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
   >('image/png');
   const dropRef = useRef<HTMLLabelElement>(null);
   const [time, setTime] = useState('');
+  const [wasmOnnxModel, setWasmOnnxModel] = useState(false);
+
+  useEffect(() => {
+    const model = window.localStorage.getItem(smallModelKey);
+    setWasmOnnxModel(!!model);
+  }, []);
+
+  function changeModel() {
+    const model = 'u2netp.onnx';
+    window.localStorage.setItem(smallModelKey, model);
+    setWasmOnnxModel(true);
+    remove();
+  }
 
   const handleFiles = useCallback(async (files?: FileList | File[] | null) => {
     if (!files?.length) return;
@@ -74,15 +106,17 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
     const startTime = performance.now();
     setIsLoading(true);
     setOutOfMemory(false);
-    const isLow = isLowEndDevice();
+    // const isLow = isLowEndDevice();
+    const isMobile = isMobileDevice();
     // const result: Array<PromiseSettledResult<Blob>> = [];
+    const model = window.localStorage.getItem(smallModelKey);
     for (const item of imgSliders) {
       const { beforeFile: file } = item;
       try {
         item.status = 'processing';
         setImgSliders([...imgSliders]);
         const output = await removeBackground(file, {
-          device: isLow ? 'cpu' : 'gpu',
+          device: 'gpu',
           // https://staticimgly.com/@imgly/background-removal-data/YOUR_PACKAGE_VERSION/package.tgz
           publicPath: `${location.origin}/_models/release/`,
           progress: (key, current, total) => {
@@ -96,7 +130,16 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
               setIsDownloading(true);
             }
           },
-          model: isLow ? 'isnet_quint8' : 'isnet_fp16',
+          model: isMobile ? 'isnet_quint8' : 'isnet_fp16',
+          ...(model
+            ? {
+                mInfo: {
+                  modelUrl: `/_models/${model}`,
+                  size: 320,
+                  inputKey: 'input.1',
+                },
+              }
+            : {}),
           proxyToWorker: true,
           debug:
             import.meta.env.DEV ||
@@ -106,7 +149,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           // },
           output: {
             format,
-            quality: isLow ? 0.4 : 0.6,
+            quality: isMobile ? 0.4 : 0.6,
           },
         });
         item.status = 'fulfilled';
@@ -360,10 +403,20 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           </div>
           <div className="main-width text-rose-600 rounded-md pt-2 pb-6 md:text-lg">
             {outOfMemory && (
-              <span>
-                ⚠️ Your device may struggle with this task. Try using a desktop
-                for better results.
-              </span>
+              <>
+                <span>
+                  ⚠️ Your device may struggle with this task. Try using a
+                  desktop for better results.
+                </span>
+                {!wasmOnnxModel && (
+                  <button
+                    onClick={changeModel}
+                    className="mt-2 block w-full text-center py-3 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-all"
+                  >
+                    Try a small model?
+                  </button>
+                )}
+              </>
             )}
           </div>
 

@@ -55,6 +55,10 @@ On the first run, the necessary data (~80MB) will be fetched and stored in the b
 ### Why can't my mobile device run this?
 Because running AI models in a browser requires significant memory, and mobile devices often have performance limitations that restrict the browser's available memory, causing the model to fail. For the best experience, we recommend using a desktop computer with better performance.
 
+### Why does the effect look worse on mobile than on desktop?
+To ensure smooth performance on mobile devices, a smaller and lighter model is used, which may produce less accurate results compared to desktop.
+For the best experience, please use a desktop computer.
+
 ### Is there a limit to the number of images I can process in batch?
 While batch processing is supported, uploading too many large images at once may cause memory issues. On mobile devices, a high-memory device is strongly recommended.
 
