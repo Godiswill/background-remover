@@ -312,7 +312,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             </div>
           </label>
         </div>
-        <div className="my-4 block sm:flex items-center">
+        <div className="mt-4 block sm:flex items-center">
           <div
             className="text-center mb-2 sm:text-start text-sm sm:mr-8 xl:text-lg xl:mr-16"
             onClick={clearLocalStorage}
@@ -337,6 +337,11 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
             {children}
           </div>
         </div>
+      </div>
+      <div className="main-width text-yellow-500 flex justify-center items-center text-sm md:justify-start md:text-base h-6 md:h-8">
+        {wasmOnnxModel && (
+          <span>Notice: You’re using a lightweight model.</span>
+        )}
       </div>
       {!!imgSliders?.length && (
         <div>
