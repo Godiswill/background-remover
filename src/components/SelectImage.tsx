@@ -338,7 +338,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           </div>
         </div>
       </div>
-      <div className="main-width text-yellow-500 flex justify-center items-center text-sm md:justify-start md:text-base h-6 md:h-8">
+      <div className="main-width text-yellow-500 flex justify-center items-center text-sm md:justify-start md:text-base h-7 md:h-8">
         {wasmOnnxModel && (
           <span>Notice: You’re using a lightweight model.</span>
         )}
