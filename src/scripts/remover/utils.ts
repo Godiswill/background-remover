@@ -172,3 +172,32 @@ function createCanvas(width, height) {
   }
   return canvas;
 }
+
+export function isMobileDevice() {
+  // 方案 1：User-Agent 判断（较准确）
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isMobileUA =
+    /android|iphone|ipad|ipod|windows phone|blackberry|mobile/i.test(ua);
+
+  // 方案 2：触摸能力（部分平板可能会误判）
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  // 方案 3：屏幕尺寸（防止误判需配合其它判断）
+  const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) < 768;
+
+  // 综合判断
+  return isMobileUA || (hasTouch && isSmallScreen);
+}
+
+export function isLowEndDevice() {
+  const nav = navigator;
+  const ua = nav.userAgent.toLowerCase();
+
+  const isOldAndroid = /android [0-7]\./.test(ua);
+  const isLowMemory = nav.deviceMemory && nav.deviceMemory <= 2;
+  const isLowCpu = nav.hardwareConcurrency && nav.hardwareConcurrency <= 2;
+  const noWebGL = !window.WebGLRenderingContext;
+  const noWebGPU = !('gpu' in nav);
+
+  return isOldAndroid || isLowMemory || isLowCpu || noWebGL || noWebGPU;
+}

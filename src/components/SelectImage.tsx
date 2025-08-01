@@ -3,6 +3,7 @@ import { useState, useId, useEffect, useRef, useCallback } from 'react';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 import { removeBackground } from '@/scripts/remover';
+import { isMobileDevice } from '@/scripts/remover/utils';
 import PreviewDownload from './PreviewDownload';
 
 function formatTime(ms: number) {
@@ -20,35 +21,6 @@ function formatTime(ms: number) {
     parts.push(`${seconds}s`);
     return parts.join(' ');
   }
-}
-
-function isMobileDevice() {
-  // 方案 1：User-Agent 判断（较准确）
-  const ua = navigator.userAgent || navigator.vendor || window.opera;
-  const isMobileUA =
-    /android|iphone|ipad|ipod|windows phone|blackberry|mobile/i.test(ua);
-
-  // 方案 2：触摸能力（部分平板可能会误判）
-  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-  // 方案 3：屏幕尺寸（防止误判需配合其它判断）
-  const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) < 768;
-
-  // 综合判断
-  return isMobileUA || (hasTouch && isSmallScreen);
-}
-
-function isLowEndDevice() {
-  const nav = navigator;
-  const ua = nav.userAgent.toLowerCase();
-
-  const isOldAndroid = /android [0-7]\./.test(ua);
-  const isLowMemory = nav.deviceMemory && nav.deviceMemory <= 2;
-  const isLowCpu = nav.hardwareConcurrency && nav.hardwareConcurrency <= 2;
-  const noWebGL = !window.WebGLRenderingContext;
-  const noWebGPU = !('gpu' in nav);
-
-  return isOldAndroid || isLowMemory || isLowCpu || noWebGL || noWebGPU;
 }
 
 const smallModelKey = 'WasmOnnxModel';
@@ -77,11 +49,16 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
     setWasmOnnxModel(!!model);
   }, []);
 
+  function clearLocalStorage() {
+    if (!!new URLSearchParams(window.location.search).get('debug')) {
+      window.localStorage.removeItem(smallModelKey);
+    }
+  }
+
   function changeModel() {
     const model = 'u2netp.onnx';
     window.localStorage.setItem(smallModelKey, model);
-    setWasmOnnxModel(true);
-    remove();
+    window.location.reload();
   }
 
   const handleFiles = useCallback(async (files?: FileList | File[] | null) => {
@@ -336,7 +313,10 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
           </label>
         </div>
         <div className="my-4 block sm:flex items-center">
-          <div className="text-center mb-2 sm:text-start text-sm sm:mr-8 xl:text-lg xl:mr-16">
+          <div
+            className="text-center mb-2 sm:text-start text-sm sm:mr-8 xl:text-lg xl:mr-16"
+            onClick={clearLocalStorage}
+          >
             <p>Start Removing Backgrounds</p>
             <p>No image? Try one of these:</p>
           </div>
@@ -413,7 +393,7 @@ export default function SelectImage({ children }: React.PropsWithChildren) {
                     onClick={changeModel}
                     className="mt-2 block w-full text-center py-3 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-all"
                   >
-                    Try a small model?
+                    Try a smaller model?
                   </button>
                 )}
               </>

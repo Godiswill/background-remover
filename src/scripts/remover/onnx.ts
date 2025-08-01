@@ -8,15 +8,17 @@ import * as ort_cpu from 'onnxruntime-web';
 import * as ort_gpu from 'onnxruntime-web/webgpu';
 
 import { loadAsUrl } from './resource';
-import * as feat from './features';
+import { isMobileDevice } from './utils';
+import { webgpu, simd, maxNumThreads, threads } from './features';
 import type { Config } from './schema';
 
 async function createOnnxSession(model: any, config: Config) {
   const isSmallModel = !!config.mInfo.modelUrl;
+  const isMobile = isMobileDevice();
   const useWebGPU =
-    !isSmallModel && config.device === 'gpu' && (await feat.webgpu());
-  const useThreads = !isSmallModel && (await feat.threads());
-  const useSimd = feat.simd();
+    !isSmallModel && config.device === 'gpu' && (await webgpu());
+  const useThreads = !isMobile && (await threads());
+  const useSimd = simd();
   const proxyToWorker = config.proxyToWorker;
   const executionProviders = [useWebGPU ? 'webgpu' : 'wasm'];
   const ort = useWebGPU ? ort_gpu : ort_cpu;
@@ -28,11 +30,11 @@ async function createOnnxSession(model: any, config: Config) {
     console.debug('\tProxy to Worker:', proxyToWorker);
 
     ort.env.debug = true;
-    ort.env.logLevel = 'verbose';
+    // ort.env.logLevel = 'verbose';
   }
 
-  ort.env.wasm.numThreads = isSmallModel ? 1 : feat.maxNumThreads();
-  ort.env.wasm.simd = feat.simd();
+  ort.env.wasm.numThreads = isMobile ? 1 : maxNumThreads();
+  ort.env.wasm.simd = simd();
   ort.env.wasm.proxy = proxyToWorker;
 
   const wasmPaths = {

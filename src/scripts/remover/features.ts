@@ -127,4 +127,7 @@ export const webgpu = async () => {
   const adapter = await navigator.gpu.requestAdapter();
   return adapter !== null;
 };
-export const maxNumThreads = () => navigator.hardwareConcurrency ?? 1;
+export const maxNumThreads = () =>
+  navigator.hardwareConcurrency
+    ? Math.ceil(navigator.hardwareConcurrency / 2)
+    : 1;
